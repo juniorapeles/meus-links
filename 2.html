@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Página HTML</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #046bd2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gerador de Página HTML</h1>
+    <p>Cole o código HTML abaixo e clique no botão para visualizar a página.</p>
+    <textarea id="htmlInput" placeholder="Cole seu código HTML aqui..."></textarea>
+    <br>
+    <button id="generateButton">Gerar Página</button>
+    <iframe id="outputFrame" style="display:none;"></iframe>
+
+    <script>
+        document.getElementById("generateButton").addEventListener("click", function() {
+            const htmlInput = document.getElementById("htmlInput").value;
+            const iframe = document.getElementById("outputFrame");
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+            if (htmlInput.trim() === "") {
+                alert("Por favor, cole algum código HTML.");
+                return;
+            }
+
+            // Atualiza o conteúdo do iframe com o código HTML fornecido
+            iframe.style.display = "block";
+            iframeDoc.open();
+            iframeDoc.write(htmlInput);
+            iframeDoc.close();
+        });
+    </script>
+</body>
+</html>

@@ -1,62 +1,74 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Página HTML</title>
+    <title>Cronômetro Regressivo</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            text-align: center;
-        }
-        textarea {
-            width: 100%;
-            height: 200px;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #046bd2;
+            background: linear-gradient(135deg, #046BD2, #00C6FF);
             color: white;
-            border: none;
-            border-radius: 5px;
+            text-align: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
         }
-        iframe {
-            width: 100%;
-            height: 500px;
-            border: 1px solid #ddd;
-            margin-top: 20px;
+
+        .container {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        #timer {
+            font-size: 48px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <h1>Gerador de Página HTML</h1>
-    <p>Cole o código HTML abaixo e clique no botão para visualizar a página.</p>
-    <textarea id="htmlInput" placeholder="Cole seu código HTML aqui..."></textarea>
-    <br>
-    <button id="generateButton">Gerar Página</button>
-    <iframe id="outputFrame" style="display:none;"></iframe>
+
+    <div class="container">
+        <h1>Tempo restante até as 10:00 de amanhã:</h1>
+        <div id="timer">00:00:00</div>
+    </div>
 
     <script>
-        document.getElementById("generateButton").addEventListener("click", function() {
-            const htmlInput = document.getElementById("htmlInput").value;
-            const iframe = document.getElementById("outputFrame");
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+        function atualizarCronometro() {
+            const agora = new Date();
+            const amanha = new Date();
+            amanha.setDate(amanha.getDate() + 1);
+            amanha.setHours(10, 0, 0, 0); // Define para as 10:00 da manhã
 
-            if (htmlInput.trim() === "") {
-                alert("Por favor, cole algum código HTML.");
+            const diferenca = amanha - agora;
+            
+            if (diferenca <= 0) {
+                document.getElementById('timer').innerHTML = "00:00:00";
                 return;
             }
 
-            // Atualiza o conteúdo do iframe com o código HTML fornecido
-            iframe.style.display = "block";
-            iframeDoc.open();
-            iframeDoc.write(htmlInput);
-            iframeDoc.close();
-        });
+            const horas = Math.floor(diferenca / (1000 * 60 * 60));
+            const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diferenca % (1000 * 60)) / 1000);
+
+            document.getElementById('timer').innerHTML = 
+                (horas < 10 ? "0" : "") + horas + ":" +
+                (minutos < 10 ? "0" : "") + minutos + ":" +
+                (segundos < 10 ? "0" : "") + segundos;
+        }
+
+        setInterval(atualizarCronometro, 1000);
+        atualizarCronometro();
     </script>
+
 </body>
 </html>

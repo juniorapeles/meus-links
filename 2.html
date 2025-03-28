@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cronômetro Regressivo</title>
+    <title>Contagem Regressiva Romântica</title>
     <style>
+        /* Estilos gerais */
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #046BD2, #00C6FF);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff758c, #ff7eb3);
             color: white;
             text-align: center;
             height: 100vh;
@@ -17,37 +18,82 @@
             margin: 0;
         }
 
+        /* Container principal */
         .container {
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.2);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 300;
+            font-family: 'Dancing Script', cursive;
         }
 
+        /* Coração */
+        .heart-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            animation: pulse 1.5s infinite;
+        }
+
+        .heart-button img {
+            width: 60px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .heart-button img:hover {
+            transform: scale(1.2);
+        }
+
+        /* Animação do coração */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Cronômetro escondido */
         #timer {
-            font-size: 48px;
+            font-size: 42px;
             font-weight: bold;
+            margin-top: 20px;
+            display: none;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            h1 { font-size: 18px; }
+            .heart-button img { width: 50px; }
+            #timer { font-size: 32px; }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Tempo restante até as 10:00 de amanhã:</h1>
+        <h1>Quer saber quanto falta para as 10:00 de amanhã? 💕</h1>
+        <button class="heart-button" onclick="mostrarTimer()">
+            <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png" alt="Coração">
+        </button>
         <div id="timer">00:00:00</div>
     </div>
 
     <script>
-        function atualizarCronometro() {
+        function calcularTempoRestante() {
             const agora = new Date();
             const amanha = new Date();
             amanha.setDate(amanha.getDate() + 1);
-            amanha.setHours(10, 0, 0, 0); // Define para as 10:00 da manhã
+            amanha.setHours(10, 0, 0, 0);
 
             const diferenca = amanha - agora;
             
@@ -66,8 +112,11 @@
                 (segundos < 10 ? "0" : "") + segundos;
         }
 
-        setInterval(atualizarCronometro, 1000);
-        atualizarCronometro();
+        function mostrarTimer() {
+            document.getElementById('timer').style.display = 'block';
+            setInterval(calcularTempoRestante, 1000);
+            calcularTempoRestante();
+        }
     </script>
 
 </body>

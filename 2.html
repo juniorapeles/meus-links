@@ -66,39 +66,47 @@
       corpo.innerHTML = "";
 
       const tipos = ["renda", "despesa-fixa", "despesa-variavel"];
+      const totais = {
+        "renda": 0,
+        "despesa-fixa": 0,
+        "despesa-variavel": 0
+      };
 
-      tipos.forEach(tipo => {
-        const grupo = dados[mesAtual].filter(linha => linha.tipo === tipo);
-        let total = 0;
+      dados[mesAtual].forEach((linha, index) => {
+        const tr = document.createElement("tr");
+        tr.className = linha.tipo;
 
-        grupo.forEach((linha, index) => {
-          const tr = document.createElement("tr");
-          tr.className = linha.tipo;
+        tr.innerHTML = `
+          <td>${formatarCategoria(linha.tipo)}</td>
+          <td contenteditable="true"
+              oninput="atualizarDescricao(${mesAtual}, ${index}, this.innerText)">
+              ${linha.descricao || ""}
+          </td>
+          <td contenteditable="true"
+              onblur="atualizarValor(${mesAtual}, ${index}, this.innerText)">
+              ${linha.valor || ""}
+          </td>
+          <td class="btn-add">
+            <button class="btn btn-outline-danger btn-sm" onclick="removerLinha(${index})">−</button>
+          </td>
+        `;
+        corpo.appendChild(tr);
 
-          tr.innerHTML = `
-            <td>${formatarCategoria(linha.tipo)}</td>
-            <td contenteditable="true" oninput="atualizarDescricao(${mesAtual}, ${dados[mesAtual].indexOf(linha)}, this.innerText)">${linha.descricao || ""}</td>
-            <td contenteditable="true" oninput="atualizarValor(${mesAtual}, ${dados[mesAtual].indexOf(linha)}, this.innerText)">${linha.valor || ""}</td>
-            <td class="btn-add">
-              <button class="btn btn-outline-danger btn-sm" onclick="removerLinha(${dados[mesAtual].indexOf(linha)})">−</button>
-            </td>
-          `;
-          corpo.appendChild(tr);
-
-          const valorNum = parseFloat(linha.valor.replace(",", "."));
-          if (!isNaN(valorNum)) total += valorNum;
-        });
-
-        // Total do grupo
-        if (grupo.length > 0) {
-          const trTotal = document.createElement("tr");
-          trTotal.className = "grupo-total";
-          trTotal.innerHTML = `
-            <td colspan="2">Total de ${formatarCategoria(tipo)}</td>
-            <td colspan="2">R$ ${total.toFixed(2)}</td>
-          `;
-          corpo.appendChild(trTotal);
+        const valorNum = parseFloat(linha.valor.replace(",", "."));
+        if (!isNaN(valorNum)) {
+          totais[linha.tipo] += valorNum;
         }
+      });
+
+      // Totais agrupados no fim da tabela
+      tipos.forEach(tipo => {
+        const trTotal = document.createElement("tr");
+        trTotal.className = "grupo-total";
+        trTotal.innerHTML = `
+          <td colspan="2">Total de ${formatarCategoria(tipo)}</td>
+          <td colspan="2">R$ ${totais[tipo].toFixed(2)}</td>
+        `;
+        corpo.appendChild(trTotal);
       });
 
       // Linha final para mobile (clique para adicionar)
@@ -146,7 +154,7 @@
 
     function atualizarValor(mes, index, valor) {
       dados[mes][index].valor = valor;
-      renderizarTabela(); // Atualiza os totais após edição
+      renderizarTabela(); // só atualiza ao sair da célula (onblur)
     }
 
     atualizarTitulo();

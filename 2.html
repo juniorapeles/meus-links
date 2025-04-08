@@ -10,7 +10,7 @@
     .despesa-fixa { background-color: #f8d7da; }
     .despesa-variavel { background-color: #fff3cd; }
     .investimento { background-color: #d1ecf1; }
-    .grupo-total { font-weight: bold; background-color: #e9ecef; }
+    .grupo-total { font-weight: bold; }
     .saldo-positivo { background-color: #d4edda; }
     .saldo-negativo { background-color: #f8d7da; }
     .seta { cursor: pointer; font-size: 1.5rem; }
@@ -125,7 +125,7 @@
 
       tipos.forEach(tipo => {
         const trTotal = document.createElement("tr");
-        trTotal.className = "grupo-total";
+        trTotal.className = `${tipo} grupo-total`;
         trTotal.innerHTML = `
           <td colspan="2">Total de ${formatarCategoria(tipo)}</td>
           <td colspan="2">R$ ${totais[tipo].toFixed(2)}</td>
@@ -170,7 +170,7 @@
       });
 
       const trTotal = document.createElement("tr");
-      trTotal.className = "grupo-total";
+      trTotal.className = "investimento grupo-total";
       trTotal.innerHTML = `
         <td>Total de Investimentos</td>
         <td colspan="2">R$ ${total.toFixed(2)}</td>

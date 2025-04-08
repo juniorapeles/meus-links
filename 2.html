@@ -1,164 +1,125 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Controle de Despesas</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <style>
-    .renda { background-color: #d4edda; }
-    .despesa-fixa { background-color: #f8d7da; }
-    .despesa-variavel { background-color: #fff3cd; }
-    .seta { cursor: pointer; font-size: 1.5rem; }
-    .grupo-total { font-weight: bold; background-color: #e9ecef; }
-    @media (max-width: 768px) {
-      .btn-add {
-        display: none;
-      }
-    }
-  </style>
-</head>
-<body class="bg-light p-4">
-  <div class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <span class="seta" onclick="mudarMes(-1)">&#8592;</span>
-      <h2 id="mesTitulo"></h2>
-      <span class="seta" onclick="mudarMes(1)">&#8594;</span>
-    </div>
+<!-- ...mesmo conteúdo até a função renderizarTabela... -->
 
-    <div class="mb-3 d-flex gap-2 flex-wrap">
-      <button class="btn btn-success" onclick="adicionarLinha('renda')">+ Renda</button>
-      <button class="btn btn-danger" onclick="adicionarLinha('despesa-fixa')">+ Despesa Fixa</button>
-      <button class="btn btn-warning" onclick="adicionarLinha('despesa-variavel')">+ Despesa Variável</button>
-    </div>
+<script>
+  const meses = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+  const anoAtual = new Date().getFullYear();
+  let mesAtual = new Date().getMonth();
 
-    <div class="table-responsive">
-      <table class="table table-bordered align-middle text-center">
-        <thead class="table-secondary">
-          <tr>
-            <th>Categoria</th>
-            <th>Descrição</th>
-            <th>Valor (R$)</th>
-            <th class="btn-add">+</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaCorpo"></tbody>
-      </table>
-    </div>
-  </div>
+  const dados = Array(12).fill(null).map(() => []);
 
-  <script>
-    const meses = [
-      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
-    const anoAtual = new Date().getFullYear();
-    let mesAtual = new Date().getMonth();
+  function atualizarTitulo() {
+    document.getElementById("mesTitulo").innerText = `${meses[mesAtual]} ${anoAtual}`;
+  }
 
-    const dados = Array(12).fill(null).map(() => []);
+  function renderizarTabela() {
+    const corpo = document.getElementById("tabelaCorpo");
+    corpo.innerHTML = "";
 
-    function atualizarTitulo() {
-      document.getElementById("mesTitulo").innerText = `${meses[mesAtual]} ${anoAtual}`;
-    }
+    const tipos = ["renda", "despesa-fixa", "despesa-variavel"];
+    const totais = {
+      "renda": 0,
+      "despesa-fixa": 0,
+      "despesa-variavel": 0
+    };
 
-    function renderizarTabela() {
-      const corpo = document.getElementById("tabelaCorpo");
-      corpo.innerHTML = "";
+    dados[mesAtual].forEach((linha, index) => {
+      const tr = document.createElement("tr");
+      tr.className = linha.tipo;
 
-      const tipos = ["renda", "despesa-fixa", "despesa-variavel"];
-      const totais = {
-        "renda": 0,
-        "despesa-fixa": 0,
-        "despesa-variavel": 0
-      };
-
-      dados[mesAtual].forEach((linha, index) => {
-        const tr = document.createElement("tr");
-        tr.className = linha.tipo;
-
-        tr.innerHTML = `
-          <td>${formatarCategoria(linha.tipo)}</td>
-          <td contenteditable="true"
-              oninput="atualizarDescricao(${mesAtual}, ${index}, this.innerText)">
-              ${linha.descricao || ""}
-          </td>
-          <td contenteditable="true"
-              onblur="atualizarValor(${mesAtual}, ${index}, this.innerText)">
-              ${linha.valor || ""}
-          </td>
-          <td class="btn-add">
-            <button class="btn btn-outline-danger btn-sm" onclick="removerLinha(${index})">−</button>
-          </td>
-        `;
-        corpo.appendChild(tr);
-
-        const valorNum = parseFloat(linha.valor.replace(",", "."));
-        if (!isNaN(valorNum)) {
-          totais[linha.tipo] += valorNum;
-        }
-      });
-
-      // Totais agrupados no fim da tabela
-      tipos.forEach(tipo => {
-        const trTotal = document.createElement("tr");
-        trTotal.className = "grupo-total";
-        trTotal.innerHTML = `
-          <td colspan="2">Total de ${formatarCategoria(tipo)}</td>
-          <td colspan="2">R$ ${totais[tipo].toFixed(2)}</td>
-        `;
-        corpo.appendChild(trTotal);
-      });
-
-      // Linha final para mobile (clique para adicionar)
-      const trFinal = document.createElement("tr");
-      trFinal.innerHTML = `
-        <td colspan="4" class="text-muted fst-italic text-center" onclick="adicionarLinha('renda')">
-          Toque aqui para adicionar uma nova entrada
+      tr.innerHTML = `
+        <td>${formatarCategoria(linha.tipo)}</td>
+        <td contenteditable="true"
+            oninput="atualizarDescricao(${mesAtual}, ${index}, this.innerText)">
+            ${linha.descricao || ""}
+        </td>
+        <td contenteditable="true"
+            onblur="atualizarValor(${mesAtual}, ${index}, this.innerText)">
+            ${linha.valor || ""}
+        </td>
+        <td class="btn-add">
+          <button class="btn btn-outline-danger btn-sm" onclick="removerLinha(${index})">−</button>
         </td>
       `;
-      corpo.appendChild(trFinal);
-    }
+      corpo.appendChild(tr);
 
-    function formatarCategoria(tipo) {
-      switch (tipo) {
-        case "renda": return "Renda";
-        case "despesa-fixa": return "Despesa Fixa";
-        case "despesa-variavel": return "Despesa Variável";
-        default: return "";
+      const valorNum = parseFloat(linha.valor.replace(",", "."));
+      if (!isNaN(valorNum)) {
+        totais[linha.tipo] += valorNum;
       }
-    }
+    });
 
-    function adicionarLinha(tipo) {
-      dados[mesAtual].push({
-        tipo: tipo,
-        descricao: "",
-        valor: ""
-      });
-      renderizarTabela();
-    }
+    // Totais por categoria
+    tipos.forEach(tipo => {
+      const trTotal = document.createElement("tr");
+      trTotal.className = "grupo-total";
+      trTotal.innerHTML = `
+        <td colspan="2">Total de ${formatarCategoria(tipo)}</td>
+        <td colspan="2">R$ ${totais[tipo].toFixed(2)}</td>
+      `;
+      corpo.appendChild(trTotal);
+    });
 
-    function removerLinha(index) {
-      dados[mesAtual].splice(index, 1);
-      renderizarTabela();
-    }
+    // Total final (Renda - Despesas)
+    const totalFinal = totais["renda"] - (totais["despesa-fixa"] + totais["despesa-variavel"]);
+    const trFinalResultado = document.createElement("tr");
+    trFinalResultado.className = "grupo-total";
+    trFinalResultado.innerHTML = `
+      <td colspan="2">Saldo Final</td>
+      <td colspan="2">R$ ${totalFinal.toFixed(2)}</td>
+    `;
+    corpo.appendChild(trFinalResultado);
 
-    function mudarMes(direcao) {
-      mesAtual = (mesAtual + direcao + 12) % 12;
-      atualizarTitulo();
-      renderizarTabela();
-    }
+    // Linha final para mobile (clique para adicionar)
+    const trFinal = document.createElement("tr");
+    trFinal.innerHTML = `
+      <td colspan="4" class="text-muted fst-italic text-center" onclick="adicionarLinha('renda')">
+        Toque aqui para adicionar uma nova entrada
+      </td>
+    `;
+    corpo.appendChild(trFinal);
+  }
 
-    function atualizarDescricao(mes, index, valor) {
-      dados[mes][index].descricao = valor;
+  function formatarCategoria(tipo) {
+    switch (tipo) {
+      case "renda": return "Renda";
+      case "despesa-fixa": return "Despesa Fixa";
+      case "despesa-variavel": return "Despesa Variável";
+      default: return "";
     }
+  }
 
-    function atualizarValor(mes, index, valor) {
-      dados[mes][index].valor = valor;
-      renderizarTabela(); // só atualiza ao sair da célula (onblur)
-    }
+  function adicionarLinha(tipo) {
+    dados[mesAtual].push({
+      tipo: tipo,
+      descricao: "",
+      valor: ""
+    });
+    renderizarTabela();
+  }
 
+  function removerLinha(index) {
+    dados[mesAtual].splice(index, 1);
+    renderizarTabela();
+  }
+
+  function mudarMes(direcao) {
+    mesAtual = (mesAtual + direcao + 12) % 12;
     atualizarTitulo();
     renderizarTabela();
-  </script>
-</body>
-</html>
+  }
+
+  function atualizarDescricao(mes, index, valor) {
+    dados[mes][index].descricao = valor;
+  }
+
+  function atualizarValor(mes, index, valor) {
+    dados[mes][index].valor = valor;
+    renderizarTabela();
+  }
+
+  atualizarTitulo();
+  renderizarTabela();
+</script>

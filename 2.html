@@ -1,123 +1,126 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contagem Regressiva Romântica</title>
-    <style>
-        /* Estilos gerais */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #ff758c, #ff7eb3);
-            color: white;
-            text-align: center;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0;
-        }
-
-        /* Container principal */
-        .container {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-            max-width: 90%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        h1 {
-            font-size: 22px;
-            font-weight: 300;
-            font-family: 'Dancing Script', cursive;
-        }
-
-        /* Coração */
-        .heart-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-            animation: pulse 1.5s infinite;
-        }
-
-        .heart-button img {
-            width: 60px;
-            transition: transform 0.3s ease-in-out;
-        }
-
-        .heart-button img:hover {
-            transform: scale(1.2);
-        }
-
-        /* Animação do coração */
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        /* Cronômetro escondido */
-        #timer {
-            font-size: 42px;
-            font-weight: bold;
-            margin-top: 20px;
-            display: none;
-        }
-
-        /* Responsividade */
-        @media (max-width: 600px) {
-            h1 { font-size: 18px; }
-            .heart-button img { width: 50px; }
-            #timer { font-size: 32px; }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controle de Despesas</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    .renda { background-color: #d4edda; }
+    .despesa-fixa { background-color: #f8d7da; }
+    .despesa-variavel { background-color: #fff3cd; }
+    .seta { cursor: pointer; font-size: 1.5rem; }
+    @media (max-width: 768px) {
+      .btn-add {
+        display: none;
+      }
+    }
+  </style>
 </head>
-<body>
-
-    <div class="container">
-        <h1>Quer saber quanto falta para as 10:00 de amanhã? 💕</h1>
-        <button class="heart-button" onclick="mostrarTimer()">
-            <img src="https://cdn-icons-png.flaticon.com/512/833/833472.png" alt="Coração">
-        </button>
-        <div id="timer">00:00:00</div>
+<body class="bg-light p-4">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <span class="seta" onclick="mudarMes(-1)">&#8592;</span>
+      <h2 id="mesTitulo"></h2>
+      <span class="seta" onclick="mudarMes(1)">&#8594;</span>
     </div>
 
-    <script>
-        function calcularTempoRestante() {
-            const agora = new Date();
-            const amanha = new Date();
-            amanha.setDate(amanha.getDate() + 1);
-            amanha.setHours(10, 0, 0, 0);
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+      <button class="btn btn-success" onclick="adicionarLinha('renda')">+ Renda</button>
+      <button class="btn btn-danger" onclick="adicionarLinha('despesa-fixa')">+ Despesa Fixa</button>
+      <button class="btn btn-warning" onclick="adicionarLinha('despesa-variavel')">+ Despesa Variável</button>
+    </div>
 
-            const diferenca = amanha - agora;
-            
-            if (diferenca <= 0) {
-                document.getElementById('timer').innerHTML = "00:00:00";
-                return;
-            }
+    <div class="table-responsive">
+      <table class="table table-bordered align-middle text-center">
+        <thead class="table-secondary">
+          <tr>
+            <th>Categoria</th>
+            <th>Descrição</th>
+            <th>Valor (R$)</th>
+            <th class="btn-add">+</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaCorpo"></tbody>
+      </table>
+    </div>
+  </div>
 
-            const horas = Math.floor(diferenca / (1000 * 60 * 60));
-            const minutos = Math.floor((diferenca % (1000 * 60 * 60)) / (1000 * 60));
-            const segundos = Math.floor((diferenca % (1000 * 60)) / 1000);
+  <script>
+    const meses = [
+      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+    ];
+    const anoAtual = new Date().getFullYear();
+    let mesAtual = new Date().getMonth();
 
-            document.getElementById('timer').innerHTML = 
-                (horas < 10 ? "0" : "") + horas + ":" +
-                (minutos < 10 ? "0" : "") + minutos + ":" +
-                (segundos < 10 ? "0" : "") + segundos;
-        }
+    const dados = Array(12).fill(null).map(() => []);
 
-        function mostrarTimer() {
-            document.getElementById('timer').style.display = 'block';
-            setInterval(calcularTempoRestante, 1000);
-            calcularTempoRestante();
-        }
-    </script>
+    function atualizarTitulo() {
+      document.getElementById("mesTitulo").innerText = `${meses[mesAtual]} ${anoAtual}`;
+    }
 
+    function renderizarTabela() {
+      const corpo = document.getElementById("tabelaCorpo");
+      corpo.innerHTML = "";
+
+      const linhas = dados[mesAtual];
+      linhas.forEach((linha, index) => {
+        const tr = document.createElement("tr");
+        tr.className = linha.tipo;
+
+        tr.innerHTML = `
+          <td>${formatarCategoria(linha.tipo)}</td>
+          <td contenteditable="true">${linha.descricao || ""}</td>
+          <td contenteditable="true">${linha.valor || ""}</td>
+          <td class="btn-add">
+            <button class="btn btn-outline-danger btn-sm" onclick="removerLinha(${index})">−</button>
+          </td>
+        `;
+        corpo.appendChild(tr);
+      });
+
+      const trFinal = document.createElement("tr");
+      trFinal.innerHTML = `
+        <td colspan="4" class="text-muted fst-italic text-center" onclick="adicionarLinha('renda')">
+          Toque aqui para adicionar uma nova entrada
+        </td>
+      `;
+      corpo.appendChild(trFinal);
+    }
+
+    function formatarCategoria(tipo) {
+      switch (tipo) {
+        case "renda": return "Renda";
+        case "despesa-fixa": return "Despesa Fixa";
+        case "despesa-variavel": return "Despesa Variável";
+        default: return "";
+      }
+    }
+
+    function adicionarLinha(tipo) {
+      dados[mesAtual].push({
+        tipo: tipo,
+        descricao: "",
+        valor: ""
+      });
+      renderizarTabela();
+    }
+
+    function removerLinha(index) {
+      dados[mesAtual].splice(index, 1);
+      renderizarTabela();
+    }
+
+    function mudarMes(direcao) {
+      mesAtual = (mesAtual + direcao + 12) % 12;
+      atualizarTitulo();
+      renderizarTabela();
+    }
+
+    // Inicializa a página
+    atualizarTitulo();
+    renderizarTabela();
+  </script>
 </body>
 </html>

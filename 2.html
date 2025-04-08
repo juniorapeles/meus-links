@@ -9,10 +9,22 @@
     .renda { background-color: #d4edda; }
     .despesa-fixa { background-color: #f8d7da; }
     .despesa-variavel { background-color: #fff3cd; }
-    .seta { cursor: pointer; font-size: 1.5rem; }
+    .investimento { background-color: #d1ecf1; }
     .grupo-total { font-weight: bold; background-color: #e9ecef; }
     .saldo-positivo { background-color: #d4edda; }
     .saldo-negativo { background-color: #f8d7da; }
+    .seta { cursor: pointer; font-size: 1.5rem; }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      border: 1px solid #ced4da;
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 1rem;
+      resize: vertical;
+      margin-top: 1rem;
+      background-color: #fff;
+    }
     @media (max-width: 768px) {
       .btn-add {
         display: none;
@@ -32,9 +44,11 @@
       <button class="btn btn-success" onclick="adicionarLinha('renda')">+ Renda</button>
       <button class="btn btn-danger" onclick="adicionarLinha('despesa-fixa')">+ Despesa Fixa</button>
       <button class="btn btn-warning" onclick="adicionarLinha('despesa-variavel')">+ Despesa Variável</button>
+      <button class="btn btn-info" onclick="adicionarLinha('investimento')">+ Investimento</button>
     </div>
 
-    <div class="table-responsive">
+    <!-- Tabela principal -->
+    <div class="table-responsive mb-4">
       <table class="table table-bordered align-middle text-center">
         <thead class="table-secondary">
           <tr>
@@ -47,17 +61,34 @@
         <tbody id="tabelaCorpo"></tbody>
       </table>
     </div>
+
+    <!-- Tabela de Investimentos -->
+    <h4 class="mb-3">Investimentos</h4>
+    <div class="table-responsive mb-4">
+      <table class="table table-bordered align-middle text-center">
+        <thead class="table-secondary">
+          <tr>
+            <th>Descrição</th>
+            <th>Valor (R$)</th>
+            <th class="btn-add">+</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaInvestimentos"></tbody>
+      </table>
+    </div>
+
+    <!-- Campo de Reflexão -->
+    <h4 class="mb-2">Reflexão do Mês</h4>
+    <textarea placeholder="Escreva aqui suas reflexões, aprendizados ou observações do mês..."></textarea>
   </div>
 
   <script>
-    const meses = [
-      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
+    const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     const anoAtual = new Date().getFullYear();
     let mesAtual = new Date().getMonth();
 
     const dados = Array(12).fill(null).map(() => []);
+    const investimentos = Array(12).fill(null).map(() => []);
 
     function atualizarTitulo() {
       document.getElementById("mesTitulo").innerText = `${meses[mesAtual]} ${anoAtual}`;
@@ -68,11 +99,7 @@
       corpo.innerHTML = "";
 
       const tipos = ["renda", "despesa-fixa", "despesa-variavel"];
-      const totais = {
-        "renda": 0,
-        "despesa-fixa": 0,
-        "despesa-variavel": 0
-      };
+      const totais = { "renda": 0, "despesa-fixa": 0, "despesa-variavel": 0 };
 
       dados[mesAtual].forEach((linha, index) => {
         const tr = document.createElement("tr");
@@ -80,12 +107,10 @@
 
         tr.innerHTML = `
           <td>${formatarCategoria(linha.tipo)}</td>
-          <td contenteditable="true"
-              oninput="atualizarDescricao(${mesAtual}, ${index}, this.innerText)">
+          <td contenteditable="true" oninput="atualizarDescricao(${mesAtual}, ${index}, this.innerText)">
               ${linha.descricao || ""}
           </td>
-          <td contenteditable="true"
-              onblur="atualizarValor(${mesAtual}, ${index}, this.innerText)">
+          <td contenteditable="true" onblur="atualizarValor(${mesAtual}, ${index}, this.innerText)">
               ${linha.valor || ""}
           </td>
           <td class="btn-add">
@@ -95,12 +120,9 @@
         corpo.appendChild(tr);
 
         const valorNum = parseFloat(linha.valor.replace(",", "."));
-        if (!isNaN(valorNum)) {
-          totais[linha.tipo] += valorNum;
-        }
+        if (!isNaN(valorNum)) totais[linha.tipo] += valorNum;
       });
 
-      // Totais por categoria
       tipos.forEach(tipo => {
         const trTotal = document.createElement("tr");
         trTotal.className = "grupo-total";
@@ -111,7 +133,6 @@
         corpo.appendChild(trTotal);
       });
 
-      // Total final (Renda - Despesas)
       const totalFinal = totais["renda"] - (totais["despesa-fixa"] + totais["despesa-variavel"]);
       const trFinalResultado = document.createElement("tr");
       trFinalResultado.className = totalFinal >= 0 ? "saldo-positivo grupo-total" : "saldo-negativo grupo-total";
@@ -120,33 +141,51 @@
         <td colspan="2">R$ ${totalFinal.toFixed(2)}</td>
       `;
       corpo.appendChild(trFinalResultado);
-
-      // Linha final para mobile (clique para adicionar)
-      const trFinal = document.createElement("tr");
-      trFinal.innerHTML = `
-        <td colspan="4" class="text-muted fst-italic text-center" onclick="adicionarLinha('renda')">
-          Toque aqui para adicionar uma nova entrada
-        </td>
-      `;
-      corpo.appendChild(trFinal);
     }
 
-    function formatarCategoria(tipo) {
-      switch (tipo) {
-        case "renda": return "Renda";
-        case "despesa-fixa": return "Despesa Fixa";
-        case "despesa-variavel": return "Despesa Variável";
-        default: return "";
-      }
+    function renderizarInvestimentos() {
+      const corpo = document.getElementById("tabelaInvestimentos");
+      corpo.innerHTML = "";
+
+      let total = 0;
+
+      investimentos[mesAtual].forEach((linha, index) => {
+        const tr = document.createElement("tr");
+        tr.className = "investimento";
+        tr.innerHTML = `
+          <td contenteditable="true" oninput="atualizarInvestDescricao(${mesAtual}, ${index}, this.innerText)">
+              ${linha.descricao || ""}
+          </td>
+          <td contenteditable="true" onblur="atualizarInvestValor(${mesAtual}, ${index}, this.innerText)">
+              ${linha.valor || ""}
+          </td>
+          <td class="btn-add">
+            <button class="btn btn-outline-danger btn-sm" onclick="removerInvestimento(${index})">−</button>
+          </td>
+        `;
+        corpo.appendChild(tr);
+
+        const valorNum = parseFloat(linha.valor.replace(",", "."));
+        if (!isNaN(valorNum)) total += valorNum;
+      });
+
+      const trTotal = document.createElement("tr");
+      trTotal.className = "grupo-total";
+      trTotal.innerHTML = `
+        <td>Total de Investimentos</td>
+        <td colspan="2">R$ ${total.toFixed(2)}</td>
+      `;
+      corpo.appendChild(trTotal);
     }
 
     function adicionarLinha(tipo) {
-      dados[mesAtual].push({
-        tipo: tipo,
-        descricao: "",
-        valor: ""
-      });
-      renderizarTabela();
+      if (tipo === "investimento") {
+        investimentos[mesAtual].push({ descricao: "", valor: "" });
+        renderizarInvestimentos();
+      } else {
+        dados[mesAtual].push({ tipo: tipo, descricao: "", valor: "" });
+        renderizarTabela();
+      }
     }
 
     function removerLinha(index) {
@@ -154,10 +193,9 @@
       renderizarTabela();
     }
 
-    function mudarMes(direcao) {
-      mesAtual = (mesAtual + direcao + 12) % 12;
-      atualizarTitulo();
-      renderizarTabela();
+    function removerInvestimento(index) {
+      investimentos[mesAtual].splice(index, 1);
+      renderizarInvestimentos();
     }
 
     function atualizarDescricao(mes, index, valor) {
@@ -169,8 +207,34 @@
       renderizarTabela();
     }
 
+    function atualizarInvestDescricao(mes, index, valor) {
+      investimentos[mes][index].descricao = valor;
+    }
+
+    function atualizarInvestValor(mes, index, valor) {
+      investimentos[mes][index].valor = valor;
+      renderizarInvestimentos();
+    }
+
+    function mudarMes(direcao) {
+      mesAtual = (mesAtual + direcao + 12) % 12;
+      atualizarTitulo();
+      renderizarTabela();
+      renderizarInvestimentos();
+    }
+
+    function formatarCategoria(tipo) {
+      switch (tipo) {
+        case "renda": return "Renda";
+        case "despesa-fixa": return "Despesa Fixa";
+        case "despesa-variavel": return "Despesa Variável";
+        default: return "";
+      }
+    }
+
     atualizarTitulo();
     renderizarTabela();
+    renderizarInvestimentos();
   </script>
 </body>
 </html>
